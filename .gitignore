@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Secrets: never commit API keys
+.env
+*.token
+qiskit-ibm.json
+
+# Generated results
+benchmark.json
+results*.json
+results*.csv
+map-*.json
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store

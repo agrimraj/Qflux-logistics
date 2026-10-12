@@ -1,0 +1,4 @@
+# The classical solvers, the QAOA simulator and the dashboard need only the
+# Python standard library (Python 3.10+). numpy is optional but makes the
+# QAOA simulator about 100x faster.
+numpy>=1.26

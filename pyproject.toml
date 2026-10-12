@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "qaoa-delivery-routing"
+version = "2.0.0"
+description = "Delivery routing (TSP) solved classically, with a QAOA simulator, and on IBM quantum hardware"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+
+[project.optional-dependencies]
+fast = ["numpy"]
+hardware = ["numpy", "qiskit>=2.0", "qiskit-ibm-runtime>=0.40", "qiskit-aer"]
+
+[tool.setuptools]
+py-modules = ["app", "cli"]
+
+[tool.setuptools.packages.find]
+include = ["classical*", "quantum_simulation*", "quantum_hardware*", "shared*", "dashboard*"]
+
+[tool.setuptools.package-data]
+dashboard = ["web/*.html", "web/vendor/leaflet/*"]

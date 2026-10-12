@@ -1,0 +1,706 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TSP Engine Dashboard</title>
+<link rel="stylesheet" href="/vendor/leaflet/leaflet.css">
+<script src="/vendor/leaflet/leaflet.js"></script>
+<style>
+:root {
+  color-scheme: light;
+  --bg: #f4f4f2; --surface: #fcfcfb; --surface-2: #efeeea; --border: #dcdad3;
+  --text: #0b0b0b; --text-2: #52514e; --muted: #8a8880; --grid: #e4e2dc;
+  --accent: #2a78d6; --good: #1a7f37; --warn: #9a6700; --bad: #c62828;
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #111110; --surface: #1a1a19; --surface-2: #232321; --border: #33322f;
+    --text: #f0efec; --text-2: #c3c2b7; --muted: #8d8b84; --grid: #2b2a28;
+    --accent: #3987e5; --good: #4ac26b; --warn: #d6a33a; --bad: #f06a6a;
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #111110; --surface: #1a1a19; --surface-2: #232321; --border: #33322f;
+  --text: #f0efec; --text-2: #c3c2b7; --muted: #8d8b84; --grid: #2b2a28;
+  --accent: #3987e5; --good: #4ac26b; --warn: #d6a33a; --bad: #f06a6a;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text);
+  font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif; }
+.wrap { max-width: 1240px; margin: 0 auto; padding: 24px 16px 48px; }
+header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+h1 { font-size: 22px; margin: 0; letter-spacing: -0.01em; }
+h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-2); margin: 0 0 12px; font-weight: 600; }
+.sub { color: var(--text-2); }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+.grid { display: grid; gap: 16px; }
+.top { grid-template-columns: 300px 1fr; }
+@media (max-width: 860px) { .top { grid-template-columns: 1fr; } }
+label { display: block; color: var(--text-2); font-size: 12px; margin: 10px 0 4px; }
+input[type=number], select { width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--surface-2); color: var(--text); font: inherit; }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+.row { display: flex; gap: 10px; }
+.row > * { flex: 1; }
+.check { display: flex; align-items: center; gap: 8px; padding: 7px 8px; border-radius: 8px; cursor: pointer; color: var(--text); font-size: 14px; margin: 2px 0; }
+.check:hover { background: var(--surface-2); }
+.check small { color: var(--muted); margin-left: auto; font-size: 11px; }
+.swatch { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+button { font: inherit; cursor: pointer; border-radius: 8px; border: 1px solid var(--border); background: var(--surface-2); color: var(--text); padding: 8px 12px; }
+button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; width: 100%; padding: 10px; margin-top: 14px; }
+button:disabled { opacity: .55; cursor: progress; }
+.hint { color: var(--muted); font-size: 12px; margin-top: 8px; }
+.map-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.tab { padding: 5px 10px; font-size: 12px; display: flex; align-items: center; gap: 6px; }
+.tab.on { border-color: var(--text-2); background: var(--surface); }
+svg text { fill: var(--text-2); font-size: 11px; }
+#map { width: 100%; height: auto; display: block; background: var(--surface-2); border-radius: 10px; }
+.results { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-top: 16px; }
+.res .name { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.big { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; margin-top: 6px; font-variant-numeric: tabular-nums; }
+.meta { color: var(--text-2); font-size: 12px; font-variant-numeric: tabular-nums; }
+.badge { white-space: nowrap; font-size: 11px; padding: 2px 7px; border-radius: 99px; border: 1px solid var(--border); margin-left: auto; color: var(--text-2); }
+.badge.ok { color: var(--good); border-color: currentColor; }
+.section { margin-top: 16px; }
+.bars .bar-row { display: grid; grid-template-columns: 150px 1fr 90px; gap: 10px; align-items: center; margin: 8px 0; }
+.track { height: 14px; background: var(--surface-2); border-radius: 4px; overflow: hidden; }
+.fill { height: 100%; border-radius: 0 4px 4px 0; }
+.num { text-align: right; font-variant-numeric: tabular-nums; color: var(--text); }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+.kpi { background: var(--surface-2); border-radius: 10px; padding: 12px; }
+.kpi .v { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.kpi .l { font-size: 12px; color: var(--text-2); }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: 13px; }
+th, td { padding: 7px 8px; border-bottom: 1px solid var(--grid); text-align: right; white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+th { color: var(--text-2); font-weight: 600; font-size: 12px; }
+tr.hl td { background: var(--surface-2); }
+.scroll { overflow-x: auto; }
+.err { color: var(--bad); margin-top: 10px; font-size: 13px; }
+.note { border-left: 3px solid var(--warn); padding: 8px 12px; color: var(--text-2); background: var(--surface-2); border-radius: 0 8px 8px 0; font-size: 13px; }
+.tip { position: fixed; pointer-events: none; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 6px 9px; font-size: 12px; display: none; box-shadow: 0 4px 16px rgba(0,0,0,.2); z-index: 10; }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--text-2); margin-bottom: 6px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.spinner { display: inline-block; width: 12px; height: 12px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .8s linear infinite; vertical-align: -2px; margin-right: 6px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.hw > *, .top > *, .row > * { min-width: 0; }
+.hw { display: grid; grid-template-columns: 300px 1fr; gap: 20px; }
+@media (max-width: 860px) { .hw { grid-template-columns: 1fr; } }
+.divider { border-top: 1px solid var(--border); margin: 16px 0 4px; padding-top: 10px; font-size: 12px; color: var(--text-2); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
+input[type=text], input[type=password] { width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface-2); color: var(--text); font: inherit; }
+.check.inline { padding: 6px 0; font-size: 13px; color: var(--text-2); }
+button.secondary { width: 100%; margin-top: 12px; padding: 10px; font-weight: 600; }
+.status { margin-top: 10px; font-size: 13px; color: var(--text-2); }
+.stats { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.stat { background: var(--surface-2); border-radius: 8px; padding: 6px 10px; font-size: 12px; color: var(--text-2); }
+.stat b { color: var(--text); font-variant-numeric: tabular-nums; }
+td.pending { color: var(--muted); font-style: italic; }
+a { color: var(--accent); }
+.seg { display: flex; background: var(--surface-2); border: 1px solid var(--border); border-radius: 9px; padding: 3px; gap: 3px; margin-bottom: 4px; }
+.seg button { flex: 1; border: 0; background: transparent; padding: 7px 8px; font-size: 13px; color: var(--text-2); }
+.seg button.on { background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.15); font-weight: 600; }
+.leaf { width: 100%; height: 540px; border-radius: 10px; z-index: 0; }
+.stops { list-style: none; padding: 0; margin: 6px 0 0; max-height: 210px; overflow: auto; border: 1px solid var(--border); border-radius: 8px; }
+.stops li { display: flex; align-items: center; gap: 8px; padding: 6px 8px; font-size: 13px; border-bottom: 1px solid var(--grid); }
+.stops li:last-child { border-bottom: 0; }
+.stops .num { width: 20px; height: 20px; border-radius: 50%; background: var(--surface-2); border: 1px solid var(--border); display: grid; place-items: center; font-size: 11px; flex: none; text-align: center; }
+.stops .depot .num { background: var(--text); color: var(--bg); }
+.stops .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.stops button { padding: 0 7px; font-size: 14px; line-height: 20px; }
+.hits { margin-top: 6px; }
+.hits button { display: block; width: 100%; text-align: left; margin-top: 4px; font-size: 12px; padding: 6px 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pin { background: var(--surface); border: 2px solid var(--text); border-radius: 50%; color: var(--text); font: 600 11px/18px -apple-system, sans-serif; text-align: center; width: 22px !important; height: 22px !important; box-sizing: border-box; }
+.pin.depot { background: var(--text); color: var(--bg); }
+.leaflet-container { background: var(--surface-2); font: inherit; }
+:root[data-theme="dark"] .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(.85) contrast(.9); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(.85) contrast(.9); } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Delivery routing · Classical vs QAOA</h1>
+      <div class="sub">Travelling Salesperson Problem — depot is city 0, visit every stop once, return home.</div>
+    </div>
+    <button id="theme" title="Toggle light / dark">Theme</button>
+  </header>
+
+  <div class="grid top">
+    <div class="card">
+      <h2>Problem</h2>
+      <div class="seg" role="tablist" aria-label="Map type">
+        <button id="kindRandom" class="on">Made-up map</button><button id="kindReal">Real map</button>
+      </div>
+      <div id="randomControls">
+        <label for="n">Cities: <b id="nval">5</b></label>
+        <input id="n" type="range" min="3" max="60" value="5">
+        <label for="seed">Map seed <span style="color:var(--muted)">(same seed = same map)</span></label>
+        <input id="seed" type="number" value="42">
+      </div>
+      <div id="realControls" style="display:none">
+        <label for="placeq">Find a place</label>
+        <div class="row" style="gap:6px"><input id="placeq" type="text" placeholder="e.g. Victoria Memorial, Kolkata" style="flex:3">
+          <button id="placego" style="flex:1">Find</button></div>
+        <div class="hits" id="placehits"></div>
+        <div class="row">
+          <div><label for="preset">Example</label><select id="preset"><option value="">—</option></select></div>
+          <div><label for="dist">Distance</label><select id="dist"><option value="road" selected>By road</option><option value="straight">Straight line</option></select></div>
+        </div>
+        <label>Stops <span style="color:var(--muted)">(click the map to add · first = depot)</span></label>
+        <ol class="stops" id="stops"></ol>
+        <button id="clearstops" style="margin-top:6px;font-size:12px;padding:5px 10px">Clear all</button>
+      </div>
+      <label for="layers">QAOA layers (p)</label>
+      <select id="layers"><option>1</option><option selected>2</option><option>3</option></select>
+      <label>Solvers</label>
+      <div id="methods"></div>
+      <button class="primary" id="run">Solve</button>
+      <div class="hint" id="hint"></div>
+      <div class="err" id="err"></div>
+    </div>
+
+    <div class="card">
+      <div class="map-head">
+        <h2 style="margin:0">Route map</h2>
+        <div class="tabs" id="tabs"></div>
+      </div>
+      <svg id="map" viewBox="0 0 1000 620" role="img" aria-label="Map of cities and the selected route"></svg>
+      <div id="leaf" class="leaf" style="display:none"></div>
+      <div class="hint" id="mapnote"></div>
+    </div>
+  </div>
+
+  <div class="grid results" id="results"></div>
+
+  <div class="card section" id="timecard" style="display:none">
+    <h2>Time to answer (log scale)</h2>
+    <div class="bars" id="bars"></div>
+  </div>
+
+  <div class="card section" id="qcard" style="display:none">
+    <h2>QAOA details — what the quantum circuit actually did</h2>
+    <div class="kpis" id="qkpis"></div>
+    <div style="margin-top:14px">
+      <div class="legend"><span><i class="swatch" style="background:var(--s4)"></i>Average energy (route length + rule-breaking penalty) while tuning γ, β — grid search first, then refinement</span></div>
+      <svg id="conv" viewBox="0 0 1000 160" style="width:100%;height:auto"></svg>
+    </div>
+  </div>
+
+  <div class="card section">
+    <div class="map-head">
+      <h2 style="margin:0">Measured scaling on this computer</h2>
+      <button id="scale">Run scaling benchmark</button>
+    </div>
+    <div class="legend" id="slegend"></div>
+    <svg id="scalechart" viewBox="0 0 1000 300" style="width:100%;height:auto"></svg>
+    <div class="hint">Sizes 6–16 · Brute force stops at 11 cities, Held–Karp at 16. Takes ~10–20 s.</div>
+  </div>
+
+  <div class="card section">
+    <h2>Run on IBM quantum hardware</h2>
+    <div class="hw">
+      <div>
+        <label for="hwmode">Problem</label>
+        <select id="hwmode">
+          <option value="split">Two vans: split stops (1 qubit/stop)</option>
+          <option value="route">One route ((n−1)² qubits)</option>
+        </select>
+        <div class="row" id="hwRandom">
+          <div><label for="hwn">Cities incl. depot</label><input id="hwn" type="number" value="10" min="4" max="15"></div>
+          <div><label for="hwseed">Map seed</label><input id="hwseed" type="number" value="42"></div>
+        </div>
+        <div class="hint" id="hwRealNote" style="display:none"></div>
+        <div class="row">
+          <div><label for="hwshots">Shots</label><input id="hwshots" type="number" value="4000" min="100" max="20000" step="500"></div>
+          <div><label for="hwlayers">Layers (p)</label><select id="hwlayers"><option selected>1</option><option>2</option></select></div>
+        </div>
+        <label class="check inline"><input type="checkbox" id="hwnoisy" checked> Also run a noisy copy of ibm_kingston</label>
+        <button class="secondary" id="hwsim">Simulate (no account needed)</button>
+
+        <div class="divider">Real hardware</div>
+        <label for="hwtoken">Your IBM Quantum API key</label>
+        <input id="hwtoken" type="password" placeholder="paste key — kept in memory only" autocomplete="off">
+        <label for="hwinstance">Instance CRN <span style="color:var(--muted)">(optional)</span></label>
+        <input id="hwinstance" type="text" placeholder="crn:v1:bluemix:public:quantum-computing:…">
+        <label for="hwbackend">Backend <span style="color:var(--muted)">(optional)</span></label>
+        <input id="hwbackend" type="text" placeholder="blank = least busy · fake_kingston = offline rehearsal">
+        <button class="primary" id="hwsubmit">Submit to IBM</button>
+        <div class="hint">Get a free key at <a href="https://quantum.cloud.ibm.com" target="_blank" rel="noopener">quantum.cloud.ibm.com</a>. The key is sent only to this local dashboard and is never written to disk.</div>
+        <div class="err" id="hwerr"></div>
+      </div>
+      <div>
+        <div class="stats" id="hwstats"><span class="stat">Tune the circuit on your laptop first: click <b>Simulate</b>.</span></div>
+        <div class="scroll"><table id="hwtable"><thead><tr>
+          <th>Source</th><th>Valid answers</th><th>Best answer</th><th>Best plan found</th><th>Gap vs classical</th><th>Notes</th>
+        </tr></thead><tbody></tbody></table></div>
+        <div class="status" id="hwstatus"></div>
+        <div class="legend" id="hwlegend" style="margin-top:14px"></div>
+        <svg id="hwmap" viewBox="0 0 1000 560" style="width:100%;height:auto;background:var(--surface-2);border-radius:10px" role="img" aria-label="Best delivery plan found"></svg>
+        <div id="hwleaf" class="leaf" style="display:none;height:460px"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card section">
+    <h2>Where each approach breaks down</h2>
+    <p class="note">Times beyond what we actually ran are <b>projections</b> from a calibration run on this machine.
+      The qubit column uses the standard one-hot encoding ((n−1)² qubits). Simulating QAOA needs 2<sup>qubits</sup> numbers,
+      so it stops at ~5 cities on a laptop; real hardware avoids that memory wall but adds noise, and valid tours are a tiny fraction of all bitstrings.</p>
+    <div class="scroll"><table id="bdtable"><thead><tr>
+      <th>Cities</th><th>Valid tours</th><th>Qubits</th><th>Valid share of bitstrings</th>
+      <th>Brute force</th><th>Held–Karp</th><th>QAOA simulator memory</th></tr></thead><tbody></tbody></table></div>
+  </div>
+</div>
+<div class="tip" id="tip"></div>
+
+<script>
+const METHODS = [
+  { id: "heuristic",   label: "Heuristic (NN + 2-opt)", color: "var(--s1)", limit: 500, note: "fast, no proof" },
+  { id: "held-karp",   label: "Held–Karp (exact DP)",   color: "var(--s2)", limit: 20,  note: "≤ 20" },
+  { id: "brute-force", label: "Brute force (exact)",    color: "var(--s3)", limit: 12,  note: "≤ 12" },
+  { id: "qaoa",        label: "QAOA (simulated)",       color: "var(--s4)", limit: 5,   note: "≤ 5" },
+];
+const colorOf = id => (METHODS.find(m => m.id === id) || {}).color || "var(--muted)";
+const $ = id => document.getElementById(id);
+let data = null, shown = null;
+
+// ---- theme ----
+$("theme").onclick = () => {
+  const dark = document.documentElement.dataset.theme
+    ? document.documentElement.dataset.theme === "dark"
+    : matchMedia("(prefers-color-scheme: dark)").matches;
+  document.documentElement.dataset.theme = dark ? "light" : "dark";
+};
+
+// ---- controls ----
+$("methods").innerHTML = METHODS.map(m => `
+  <label class="check"><input type="checkbox" value="${m.id}" checked>
+  <i class="swatch" style="background:${m.color}"></i>${m.label}<small>${m.note}</small></label>`).join("");
+function updateHint() {
+  const n = +$("n").value; $("nval").textContent = n;
+  const msgs = [];
+  if (n >= 12 && n <= 12) msgs.push("Brute force at 12 cities takes ~20–40 s.");
+  if (n === 5) msgs.push("QAOA at 5 cities simulates 16 qubits (a few seconds).");
+  METHODS.forEach(m => { if (n > m.limit) msgs.push(`${m.label.split(" (")[0]} skipped above ${m.limit} cities.`); });
+  $("hint").textContent = msgs.join(" ");
+}
+$("n").oninput = updateHint; updateHint();
+
+// ---- tooltip ----
+const tip = $("tip");
+function showTip(e, html) { tip.innerHTML = html; tip.style.display = "block";
+  tip.style.left = Math.min(e.clientX + 12, innerWidth - 220) + "px"; tip.style.top = (e.clientY + 12) + "px"; }
+function hideTip() { tip.style.display = "none"; }
+
+// ---- formatting ----
+const fmtTime = s => s == null ? "—" : s < 1e-3 ? (s * 1e6).toFixed(0) + " µs" : s < 1 ? (s * 1e3).toFixed(1) + " ms" : s.toFixed(2) + " s";
+const fmtLen = (v, units) => v == null ? "—" : units === "m" ? (v / 1000).toFixed(2) + " km" : v.toFixed(1);
+const fmtPct = p => p >= 0.01 ? (p * 100).toFixed(1) + "%" : (p * 100).toPrecision(2) + "%";
+
+// ---- solve ----
+$("run").onclick = async () => {
+  const methods = [...document.querySelectorAll("#methods input:checked")].map(i => i.value);
+  $("err").textContent = ""; $("run").disabled = true;
+  $("run").innerHTML = '<span class="spinner"></span>Solving…';
+  try {
+    const r = await fetch("/api/solve", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cities: +$("n").value, seed: +$("seed").value, layers: +$("layers").value, methods, map: mapSpec() }) });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error);
+    data = j; shown = (j.results.find(x => x.optimal) || j.results[0] || {}).method;
+    $("mapnote").textContent = j.map.kind === "real" ? "Distances: " + j.map.distance_source + ". " + j.map.notes.join(" ") : "";
+    render();
+  } catch (e) { $("err").textContent = e.message; }
+  finally { $("run").disabled = false; $("run").textContent = "Solve"; }
+};
+
+function render() {
+  const res = data.results;
+  // tabs
+  $("tabs").innerHTML = res.map(r => `<button class="tab ${r.method === shown ? "on" : ""}" data-m="${r.method}">
+    <i class="swatch" style="background:${colorOf(idOf(r.method))}"></i>${r.method}</button>`).join("");
+  document.querySelectorAll(".tab").forEach(b => b.onclick = () => { shown = b.dataset.m; render(); });
+  drawMap();
+  // result cards
+  $("results").innerHTML = res.map(r => `
+    <div class="card res">
+      <div class="name"><i class="swatch" style="background:${colorOf(idOf(r.method))}"></i>${r.method}
+        <span class="badge ${r.optimal ? "ok" : ""}">${r.optimal ? "✓ optimal" : r.gap_percent == null ? "no proof" : r.gap_percent < 1e-7 ? "= optimum" : "+" + r.gap_percent.toFixed(2) + "% gap"}</span></div>
+      <div class="big">${fmtTime(r.seconds)}</div>
+      <div class="meta">route length ${fmtLen(r.length, data.map.units)}</div>
+    </div>`).join("") + data.skipped.map(s => `
+    <div class="card res" style="opacity:.7">
+      <div class="name"><i class="swatch" style="background:${colorOf(s.method)}"></i>${s.method}<span class="badge">skipped</span></div>
+      <div class="meta" style="margin-top:8px">${s.reason}</div></div>`).join("");
+  // time bars (log scale)
+  if (res.length) {
+    $("timecard").style.display = "";
+    const ts = res.map(r => Math.max(r.seconds, 1e-6));
+    const lo = Math.log10(Math.min(...ts)) - 0.5, hi = Math.log10(Math.max(...ts)) + 0.2;
+    $("bars").innerHTML = res.map((r, i) => `
+      <div class="bar-row"><div>${r.method}</div>
+        <div class="track"><div class="fill" style="width:${Math.max(2, (Math.log10(ts[i]) - lo) / (hi - lo) * 100)}%;background:${colorOf(idOf(r.method))}"></div></div>
+        <div class="num">${fmtTime(r.seconds)}</div></div>`).join("");
+  } else $("timecard").style.display = "none";
+  // QAOA panel
+  const q = res.find(r => r.method.startsWith("qaoa")) || data.skipped.find(s => s.method === "qaoa" && s.n_qubits);
+  $("qcard").style.display = q ? "" : "none";
+  if (q) {
+    const boost = q.p_optimal / q.p_optimal_random;
+    $("qkpis").innerHTML = [
+      [q.n_qubits, "qubits (" + (data.n - 1) + "×" + (data.n - 1) + " one-hot)"],
+      [fmtPct(q.p_optimal), "chance one shot is the optimal tour"],
+      [fmtPct(q.p_optimal_random), "same chance by random guessing"],
+      [boost.toFixed(1) + "×", "QAOA boost over random"],
+      [fmtPct(q.p_valid), "shots that are valid tours"],
+      [q.expected_shots_to_optimal ? Math.ceil(q.expected_shots_to_optimal).toLocaleString() : "—", "expected shots to see the optimum"],
+      [q.circuit_evaluations, "circuit runs to tune γ, β"],
+      [q.backend, "simulator backend"],
+    ].map(([v, l]) => `<div class="kpi"><div class="v">${v}</div><div class="l">${l}</div></div>`).join("");
+    drawLine($("conv"), q.convergence.map((y, i) => ({ x: i, y })), "var(--s4)", 160, "energy");
+  }
+}
+const idOf = name => name.startsWith("qaoa") ? "qaoa" : name.startsWith("nearest") ? "heuristic" : name;
+
+function drawMap() {
+  if (data.map.kind === "real") {
+    const r = data.results.find(x => x.method === shown);
+    drawRealRoutes(main, r ? [r.route] : [], [colorOf(r ? idOf(r.method) : "")], data.cities);
+    return;
+  }
+  const svg = $("map"), W = 1000, H = 620, P = 30;
+  const r = data.results.find(x => x.method === shown);
+  const sx = x => P + x / 1000 * (W - 2 * P), sy = y => P + y / 1000 * (H - 2 * P);
+  let s = "";
+  if (r) {
+    const pts = r.route.map(i => data.cities[i]);
+    s += `<polyline fill="none" stroke="${colorOf(idOf(r.method))}" stroke-width="2.5" stroke-linejoin="round" points="${pts.map(c => sx(c.x) + "," + sy(c.y)).join(" ")}"/>`;
+  }
+  const small = data.n > 30;
+  data.cities.forEach(c => {
+    const depot = c.id === 0;
+    s += `<g class="city" data-id="${c.id}"><circle cx="${sx(c.x)}" cy="${sy(c.y)}" r="${depot ? 9 : small ? 4 : 6}"
+      fill="${depot ? "var(--text)" : "var(--surface)"}" stroke="var(--text)" stroke-width="2"/>
+      ${small && !depot ? "" : `<text x="${sx(c.x) + 10}" y="${sy(c.y) - 9}">${depot ? "depot 0" : c.id}</text>`}
+      <circle cx="${sx(c.x)}" cy="${sy(c.y)}" r="14" fill="transparent"/></g>`;
+  });
+  svg.innerHTML = s;
+  svg.querySelectorAll(".city").forEach(g => {
+    const c = data.cities[+g.dataset.id];
+    const pos = r ? r.route.indexOf(c.id) : -1;
+    g.onmousemove = e => showTip(e, `<b>${c.id === 0 ? "Depot (city 0)" : "City " + c.id}</b><br>(${c.x.toFixed(0)}, ${c.y.toFixed(0)})${pos > 0 ? "<br>stop #" + pos : ""}`);
+    g.onmouseleave = hideTip;
+  });
+}
+
+function drawLine(svg, pts, color, H, label) {
+  const W = 1000, P = { l: 70, r: 16, t: 10, b: 24 };
+  const ys = pts.map(p => p.y), ymin = Math.min(...ys), ymax = Math.max(...ys) || 1;
+  const X = i => P.l + i / Math.max(1, pts.length - 1) * (W - P.l - P.r);
+  const Y = y => P.t + (1 - (y - ymin) / ((ymax - ymin) || 1)) * (H - P.t - P.b);
+  let s = "";
+  [ymin, (ymin + ymax) / 2, ymax].forEach(v => {
+    s += `<line x1="${P.l}" x2="${W - P.r}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--grid)"/>
+          <text x="${P.l - 8}" y="${Y(v) + 4}" text-anchor="end">${Math.round(v).toLocaleString()}</text>`;
+  });
+  s += `<text x="${P.l}" y="${H - 6}">start of optimisation</text><text x="${W - P.r}" y="${H - 6}" text-anchor="end">end</text>`;
+  s += `<polyline fill="none" stroke="${color}" stroke-width="2" points="${pts.map((p, i) => X(i) + "," + Y(p.y)).join(" ")}"/>`;
+  svg.innerHTML = s;
+}
+
+// ---- scaling chart ----
+const SERIES = [
+  { key: "heuristic_seconds", label: "Heuristic", color: "var(--s1)" },
+  { key: "held_karp_seconds", label: "Held–Karp", color: "var(--s2)" },
+  { key: "brute_seconds", label: "Brute force", color: "var(--s3)" },
+];
+$("slegend").innerHTML = SERIES.map(s => `<span><i class="swatch" style="background:${s.color}"></i>${s.label}</span>`).join("");
+drawScaling([]);
+$("scale").onclick = async () => {
+  $("scale").disabled = true; $("scale").innerHTML = '<span class="spinner"></span>Running…';
+  try {
+    const r = await fetch("/api/scaling", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sizes: [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], seed: 1 }) });
+    drawScaling(await r.json());
+  } finally { $("scale").disabled = false; $("scale").textContent = "Run scaling benchmark"; }
+};
+function drawScaling(rows) {
+  const svg = $("scalechart"), W = 1000, H = 300, P = { l: 70, r: 20, t: 14, b: 34 };
+  const lo = -6, hi = 2;          // 1 µs .. 100 s
+  const X = n => P.l + (n - 6) / 10 * (W - P.l - P.r);
+  const Y = s => P.t + (1 - (Math.log10(Math.max(s, 1e-6)) - lo) / (hi - lo)) * (H - P.t - P.b);
+  let s = "";
+  const ticks = { "-6": "1 µs", "-4": "100 µs", "-2": "10 ms", "0": "1 s", "2": "100 s" };
+  for (let e = lo; e <= hi; e += 2) s += `<line x1="${P.l}" x2="${W - P.r}" y1="${Y(10 ** e)}" y2="${Y(10 ** e)}" stroke="var(--grid)"/>
+    <text x="${P.l - 8}" y="${Y(10 ** e) + 4}" text-anchor="end">${ticks[e]}</text>`;
+  for (let n = 6; n <= 16; n++) s += `<text x="${X(n)}" y="${H - 12}" text-anchor="middle">${n}</text>`;
+  s += `<text x="${W - P.r}" y="${H - 0}" text-anchor="end">cities</text>`;
+  if (!rows.length) s += `<text x="${W / 2}" y="${H / 2}" text-anchor="middle">Click “Run scaling benchmark” to time the solvers on your computer</text>`;
+  SERIES.forEach(se => {
+    const pts = rows.filter(r => r[se.key] != null);
+    if (!pts.length) return;
+    s += `<polyline fill="none" stroke="${se.color}" stroke-width="2" points="${pts.map(r => X(r.n) + "," + Y(r[se.key])).join(" ")}"/>`;
+    pts.forEach(r => s += `<circle class="pt" cx="${X(r.n)}" cy="${Y(r[se.key])}" r="5" fill="${se.color}" stroke="var(--surface)" stroke-width="2"
+      data-tip="<b>${se.label}</b> · ${r.n} cities<br>${fmtTime(r[se.key])}${se.key === "heuristic_seconds" && r.gap_percent != null ? "<br>gap " + r.gap_percent.toFixed(2) + "%" : ""}"/>`);
+  });
+  svg.innerHTML = s;
+  svg.querySelectorAll(".pt").forEach(c => { c.onmousemove = e => showTip(e, c.dataset.tip); c.onmouseleave = hideTip; });
+}
+
+// ---- IBM hardware panel ----
+const hw = { info: null, rows: {}, job: null, timer: null };
+const HW_LIMITS = { split: [4, 15, 10], route: [3, 5, 4] };
+$("hwmode").onchange = () => {
+  const [lo, hi, def] = HW_LIMITS[$("hwmode").value];
+  Object.assign($("hwn"), { min: lo, max: hi, value: def });
+};
+function hwBody() {
+  const real = mapKind === "real";
+  return { mode: $("hwmode").value, cities: real ? places.length : +$("hwn").value, seed: +$("hwseed").value,
+           layers: +$("hwlayers").value, shots: +$("hwshots").value, map: mapSpec() };
+}
+async function post(url, body) {
+  const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  const j = await r.json(); if (!r.ok) throw new Error(j.error || r.statusText); return j;
+}
+function busy(btn, on, label) { btn.disabled = on; btn.innerHTML = on ? '<span class="spinner"></span>' + label : btn.dataset.label; }
+["hwsim", "hwsubmit"].forEach(id => $(id).dataset.label = $(id).textContent);
+
+$("hwsim").onclick = async () => {
+  $("hwerr").textContent = ""; busy($("hwsim"), true, "Tuning + simulating…");
+  try {
+    const j = await post("/api/hw/simulate", { ...hwBody(), noisy: $("hwnoisy").checked });
+    hw.info = j; hw.key = JSON.stringify({ ...hwBody(), shots: 0 }); hw.rows = { random: j.random, ideal: j.ideal };
+    if (j.noisy) hw.rows.noisy = j.noisy;
+    if (j.noisy_error) $("hwerr").textContent = j.noisy_error;
+    renderHW();
+  } catch (e) { $("hwerr").textContent = e.message; }
+  finally { busy($("hwsim"), false); }
+};
+
+$("hwsubmit").onclick = async () => {
+  $("hwerr").textContent = ""; busy($("hwsubmit"), true, "Submitting…");
+  try {
+    if (!hw.info || hw.key !== JSON.stringify({ ...hwBody(), shots: 0 })) {
+      const j = await post("/api/hw/simulate", { ...hwBody(), noisy: false });
+      hw.info = j; hw.key = JSON.stringify({ ...hwBody(), shots: 0 }); hw.rows = { random: j.random, ideal: j.ideal };
+    }
+    const j = await post("/api/hw/submit", { ...hwBody(), token: $("hwtoken").value,
+      instance: $("hwinstance").value, backend: $("hwbackend").value });
+    hw.job = j; hw.rows.hardware = { pending: true, backend: j.backend, two_qubit_gates: j.two_qubit_gates, depth: j.depth };
+    renderHW(); pollJob();
+  } catch (e) { $("hwerr").textContent = e.message; }
+  finally { busy($("hwsubmit"), false); }
+};
+
+async function pollJob() {
+  clearTimeout(hw.timer);
+  try {
+    const s = await post("/api/hw/status", { job_id: hw.job.job_id });
+    const mins = Math.floor(s.waited_seconds / 60), secs = Math.round(s.waited_seconds % 60);
+    $("hwstatus").innerHTML = (s.summary || s.error ? "" : '<span class="spinner"></span>') +
+      `Job <code>${s.job_id.slice(0, 12)}…</code> on <b>${s.backend}</b>: ${s.status} · ${mins}m ${secs}s` +
+      (s.qpu_seconds != null && s.summary ? ` · quantum time used: ${s.qpu_seconds}s` : "") +
+      (s.status === "QUEUED" ? " · real devices have a queue; you can leave this page open" : "");
+    if (s.summary) { hw.rows.hardware = { ...s.summary, backend: s.backend, two_qubit_gates: s.two_qubit_gates, depth: s.depth }; renderHW(); return; }
+    if (s.error) { $("hwerr").textContent = s.error; hw.rows.hardware = null; renderHW(); return; }
+  } catch (e) { $("hwstatus").textContent = "Status check failed: " + e.message; }
+  hw.timer = setTimeout(pollJob, 5000);
+}
+
+function renderHW() {
+  const i = hw.info; if (!i) return;
+  const gates = hw.rows.hardware?.two_qubit_gates ?? hw.rows.noisy?.two_qubit_gates;
+  const depth = hw.rows.hardware?.depth ?? hw.rows.noisy?.depth;
+  $("hwstats").innerHTML = [
+    ["Qubits", i.qubits], ["Qubit pairs that interact", i.zz_terms],
+    gates != null ? ["2-qubit gates on chip", gates] : null, depth != null ? ["Circuit depth", depth] : null,
+    ["Tuned angles γ, β", i.params.join(", ")],
+    ["Classical: " + i.baseline.name, fmtLen(i.baseline.length, i.map.units) + " in " + fmtTime(i.baseline.seconds)],
+  ].filter(Boolean).map(([k, v]) => `<span class="stat">${k}: <b>${v}</b></span>`).join("");
+  const label = { random: "Random guessing", ideal: "Ideal simulator", noisy: "Noisy simulator (ibm_kingston copy)", hardware: "Real hardware" };
+  const rows = ["random", "ideal", "noisy", "hardware"].filter(k => hw.rows[k]);
+  $("hwtable").querySelector("tbody").innerHTML = rows.map(k => {
+    const r = hw.rows[k];
+    const rehearsal = k === "hardware" && String(r.backend).startsWith("fake_");
+    const name = k === "hardware" ? (rehearsal ? `Offline rehearsal (${r.backend}, not real hardware)` : `${label[k]} (${r.backend})`) : label[k];
+    if (r.pending) return `<tr><td>${name}</td><td class="pending" colspan="5">waiting for results…</td></tr>`;
+    const note = k === "random" ? "no quantum circuit" : k === "noisy" ? `${fmtTime(r.seconds)} to simulate` : `${r.shots.toLocaleString()} shots`;
+    return `<tr class="${k === "hardware" ? "hl" : ""}"><td>${name}</td><td>${fmtPct(r.p_valid)}</td><td>${fmtPct(r.p_best)}</td>
+      <td>${fmtLen(r.best_length, i.map.units)}</td>
+      <td>${r.gap_percent != null ? (r.gap_percent < 1e-7 ? "matches optimum" : "+" + r.gap_percent.toFixed(1) + "%") : "—"}</td><td>${note}</td></tr>`;
+  }).join("");
+  // map: best plan from the most "real" source available
+  const src = ["hardware", "noisy", "ideal"].find(k => hw.rows[k] && hw.rows[k].best_routes);
+  const srcLabel = src === "hardware" && String(hw.rows.hardware.backend).startsWith("fake_") ? "Offline rehearsal" : label[src];
+  drawHWMap(i, src ? hw.rows[src].best_routes : i.baseline.routes, src ? srcLabel : "Classical optimum");
+}
+
+function drawHWMap(info, routes, title) {
+  const real = info.map.kind === "real";
+  $("hwmap").style.display = real ? "none" : "";
+  $("hwleaf").style.display = real ? "" : "none";
+  if (real) {
+    const cols0 = info.mode === "split" ? ["#3987e5", "#d95926"] : ["#c98500"];
+    $("hwlegend").innerHTML = `<span style="color:var(--text)">Best plan found · ${title}</span>` + routes.map((r, k) =>
+      `<span><i class="swatch" style="background:${cols0[k]}"></i>${info.mode === "split" ? "Van " + "AB"[k] + " · " + (r.length - 2) + " stops" : "Route"}</span>`).join("");
+    if (!hwMap) hwMap = makeLeaflet("hwleaf", false);
+    hwMap.map.invalidateSize();
+    drawRealRoutes(hwMap, routes, cols0, info.cities);
+    return;
+  }
+  const W = 1000, H = 560, P = 30;
+  const sx = x => P + x / 1000 * (W - 2 * P), sy = y => P + y / 1000 * (H - 2 * P);
+  const cols = info.mode === "split" ? ["var(--s1)", "var(--s2)"] : ["var(--s4)"];
+  $("hwlegend").innerHTML = `<span style="color:var(--text)">Best plan found · ${title}</span>` + routes.map((r, k) =>
+    `<span><i class="swatch" style="background:${cols[k]}"></i>${info.mode === "split" ? "Van " + "AB"[k] + " · " + (r.length - 2) + " stops" : "Route"}</span>`).join("");
+  let s = "";
+  routes.forEach((r, k) => {
+    const pts = r.map(id => info.cities[id]);
+    s += `<polyline fill="none" stroke="${cols[k]}" stroke-width="2.5" stroke-linejoin="round" points="${pts.map(c => sx(c.x) + "," + sy(c.y)).join(" ")}"/>`;
+  });
+  info.cities.forEach(c => {
+    const depot = c.id === 0;
+    s += `<circle cx="${sx(c.x)}" cy="${sy(c.y)}" r="${depot ? 9 : 6}" fill="${depot ? "var(--text)" : "var(--surface)"}" stroke="var(--text)" stroke-width="2"/>
+      <text x="${sx(c.x) + 10}" y="${sy(c.y) - 9}">${depot ? "depot 0" : c.id}</text>`;
+  });
+  $("hwmap").innerHTML = s;
+}
+
+
+// ---- real maps (Leaflet + OpenStreetMap) ----
+let mapKind = "random", places = [], main = null, hwMap = null;
+// Leaflet draws SVG attributes, which cannot read CSS variables; resolve them first.
+const realColor = c => c.startsWith("var(") ? getComputedStyle(document.documentElement).getPropertyValue(c.slice(4, -1)).trim() : c;
+const geomCache = {};
+function mapSpec() {
+  return mapKind === "real" ? { kind: "real", distance: $("dist").value, places } : null;
+}
+function makeLeaflet(id, clickable) {
+  const map = L.map(id, { zoomControl: true }).setView([22.5726, 88.3639], 12);
+  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' }).addTo(map);
+  const obj = { map, pins: L.layerGroup().addTo(map), routes: L.layerGroup().addTo(map), token: 0 };
+  if (clickable) map.on("click", e => addPlace({ name: places.length ? "Stop " + places.length : "Depot", lat: +e.latlng.lat.toFixed(6), lon: +e.latlng.lng.toFixed(6) }));
+  return obj;
+}
+function pinsFor(m, pts, removable) {
+  m.pins.clearLayers();
+  pts.forEach((p, i) => {
+    const icon = L.divIcon({ className: "pin" + (i === 0 ? " depot" : ""), html: i === 0 ? "D" : String(i), iconSize: [22, 22] });
+    const mk = L.marker([p.lat, p.lon], { icon, title: p.name }).bindTooltip((i === 0 ? "Depot: " : i + ". ") + p.name);
+    if (removable) mk.on("click", () => removePlace(i));
+    mk.addTo(m.pins);
+  });
+}
+function fit(m, pts) {
+  if (!pts.length) return;
+  m.map.invalidateSize();
+  m.map.fitBounds(L.latLngBounds(pts.map(p => [p.lat, p.lon])), { padding: [30, 30], maxZoom: 15 });
+}
+async function drawRealRoutes(m, routes, colors, pts) {
+  const token = ++m.token;
+  m.routes.clearLayers();
+  pinsFor(m, pts, m === main);
+  if (m !== main) fit(m, pts);
+  for (let k = 0; k < routes.length; k++) {
+    const stops = routes[k].map(id => pts[id]);
+    if (stops.length < 2) continue;
+    const key = $("dist").value + JSON.stringify(stops.map(p => [p.lat, p.lon]));
+    let g = geomCache[key];
+    if (!g) {
+      try { g = await post("/api/geometry", { places: stops, distance: $("dist").value }); geomCache[key] = g; }
+      catch (e) { g = { path: stops.map(p => [p.lat, p.lon]) }; }
+    }
+    if (token !== m.token) return;              // a newer drawing started meanwhile
+    L.polyline(g.path, { color: realColor(colors[k] || colors[0]), weight: 4, opacity: .9 }).addTo(m.routes);
+  }
+}
+function renderPlaces() {
+  $("stops").innerHTML = places.map((p, i) => `<li class="${i === 0 ? "depot" : ""}"><span class="num">${i === 0 ? "D" : i}</span>
+    <span class="nm" title="${p.name}">${p.name}</span><button data-i="${i}" title="Remove">×</button></li>`).join("") ||
+    '<li style="color:var(--muted)">No stops yet. Click the map, search, or load the example.</li>';
+  $("stops").querySelectorAll("button").forEach(b => b.onclick = () => removePlace(+b.dataset.i));
+  if (main) { main.routes.clearLayers(); pinsFor(main, places, true); }
+  const n = places.length;
+  $("hwRealNote").textContent = `Uses the ${n} places on your real map (${Math.max(0, n - 2)} qubits for two vans, ${Math.max(0, (n - 1) ** 2)} for one route).`;
+  const msgs = [];
+  METHODS.forEach(m => { if (n > m.limit) msgs.push(`${m.label.split(" (")[0]} skipped above ${m.limit} places.`); });
+  if (mapKind === "real") $("hint").textContent = msgs.join(" ");
+}
+function addPlace(p) {
+  if (places.length >= 20) { $("err").textContent = "Up to 20 places on a real map."; return; }
+  places.push(p); renderPlaces();
+}
+function removePlace(i) {
+  places.splice(i, 1);
+  if (i === 0 && places.length) places[0].name = places[0].name.replace(/^Stop \d+$/, "Depot");
+  renderPlaces();
+}
+function setKind(kind) {
+  mapKind = kind;
+  $("kindRandom").classList.toggle("on", kind === "random");
+  $("kindReal").classList.toggle("on", kind === "real");
+  $("randomControls").style.display = kind === "random" ? "" : "none";
+  $("realControls").style.display = kind === "real" ? "" : "none";
+  $("map").style.display = kind === "random" ? "" : "none";
+  $("leaf").style.display = kind === "real" ? "" : "none";
+  $("hwRandom").style.display = kind === "random" ? "" : "none";
+  $("hwRealNote").style.display = kind === "real" ? "" : "none";
+  if (kind === "real") {
+    if (!main) main = makeLeaflet("leaf", true);
+    main.map.invalidateSize();
+    if (!places.length) { $("preset").value = "kolkata"; loadPreset(); }
+    else { renderPlaces(); fit(main, places); }
+  } else { updateHint(); $("mapnote").textContent = ""; }
+}
+let PRESETS = {};
+fetch("/api/presets").then(r => r.json()).then(p => {
+  PRESETS = p;
+  $("preset").innerHTML = '<option value="">—</option>' + Object.keys(p).map(k => `<option value="${k}">${k[0].toUpperCase() + k.slice(1)} (sample)</option>`).join("");
+});
+function loadPreset() {
+  const p = PRESETS[$("preset").value];
+  if (!p) return;
+  places = p.map(x => ({ ...x })); renderPlaces(); setTimeout(() => fit(main, places), 50);
+}
+$("preset").onchange = loadPreset;
+$("kindRandom").onclick = () => setKind("random");
+$("kindReal").onclick = () => setKind("real");
+$("clearstops").onclick = () => { places = []; renderPlaces(); };
+$("dist").onchange = () => { if (main) main.routes.clearLayers(); };
+async function findPlace() {
+  const q = $("placeq").value.trim(); if (!q) return;
+  $("placehits").innerHTML = '<span class="hint"><span class="spinner"></span>Searching…</span>';
+  try {
+    const r = await fetch("/api/geocode?q=" + encodeURIComponent(q)); const hits = await r.json();
+    if (!r.ok) throw new Error(hits.error);
+    $("placehits").innerHTML = hits.length ? hits.map((h, i) => `<button data-i="${i}" title="${h.full_name}">+ ${h.full_name}</button>`).join("") : '<span class="hint">No match.</span>';
+    $("placehits").querySelectorAll("button").forEach(b => b.onclick = () => {
+      const h = hits[+b.dataset.i];
+      addPlace({ name: places.length ? h.name : "Depot: " + h.name, lat: h.lat, lon: h.lon });
+      main.map.setView([h.lat, h.lon], Math.max(main.map.getZoom(), 13));
+      $("placehits").innerHTML = ""; $("placeq").value = "";
+    });
+  } catch (e) { $("placehits").innerHTML = `<span class="err">${e.message}</span>`; }
+}
+$("placego").onclick = findPlace;
+$("placeq").onkeydown = e => { if (e.key === "Enter") findPlace(); };
+
+// ---- breakdown table ----
+fetch("/api/breakdown").then(r => r.json()).then(rows => {
+  $("bdtable").querySelector("tbody").innerHTML = rows.filter(r => r.n <= 25).map(r => `
+    <tr class="${[5, 12, 20].includes(r.n) ? "hl" : ""}"><td>${r.n}</td><td>${r.valid_tours.toLocaleString()}</td><td>${r.qubits}</td>
+    <td>1 in 10<sup>${-r.valid_fraction_log10}</sup></td><td>${r.brute_human}</td><td>${r.held_karp_human}</td><td>${r.statevector_memory}</td></tr>`).join("");
+});
+</script>
+</body>
+</html>
