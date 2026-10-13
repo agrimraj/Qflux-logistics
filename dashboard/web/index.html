@@ -524,6 +524,7 @@ function renderHW() {
     ["Qubits", i.qubits], ["Qubit pairs that interact", i.zz_terms],
     gates != null ? ["2-qubit gates on chip", gates] : null, depth != null ? ["Circuit depth", depth] : null,
     ["Tuned angles γ, β", i.params.join(", ")],
+    i.map.kind === "real" ? ["Distances", i.map.notes.length ? "⚠ straight line (road data unavailable)" : i.map.distance_source] : null,
     ["Classical: " + i.baseline.name, fmtLen(i.baseline.length, i.map.units) + " in " + fmtTime(i.baseline.seconds)],
   ].filter(Boolean).map(([k, v]) => `<span class="stat">${k}: <b>${v}</b></span>`).join("");
   const label = { random: "Random guessing", ideal: "Ideal simulator", noisy: "Noisy simulator (ibm_kingston copy)", hardware: "Real hardware" };

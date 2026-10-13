@@ -91,10 +91,10 @@ def _to_json(obj):
     raise TypeError(f"cannot serialise {type(obj).__name__}")
 
 
-def hw_problem(body: dict):
+def hw_problem(body: dict, retry_fallback: bool = False):
     import quantum_hardware as hardware
     return hardware, hardware.get_problem_for_map(body.get("mode", "split"), map_spec(body),
-                                                  int(body.get("layers", 1)))
+                                                  int(body.get("layers", 1)), retry_fallback)
 
 
 def geometry_request(body: dict) -> dict:
@@ -114,7 +114,7 @@ def geometry_request(body: dict) -> dict:
 
 
 def hw_simulate(body: dict) -> dict:
-    hardware, problem = hw_problem(body)
+    hardware, problem = hw_problem(body, retry_fallback=True)
     shots = max(100, min(int(body.get("shots", 4000)), 20000))
     out = hardware.problem_info(problem)
     out["ideal"] = hardware.summarise(problem, hardware.ideal_counts(problem, shots))
@@ -185,10 +185,11 @@ class Handler(BaseHTTPRequestHandler):
                 self._send(200, hw_simulate(body))
             elif self.path == "/api/hw/submit":
                 hardware, problem = hw_problem(body)
-                self._send(200, hardware.submit(
+                job = hardware.submit(
                     problem, shots=max(100, min(int(body.get("shots", 4000)), 20000)),
                     token=body.get("token"), instance=body.get("instance"),
-                    backend_name=body.get("backend")))
+                    backend_name=body.get("backend"))
+                self._send(200, {**job, "distance_source": problem.map.distance_source})
             elif self.path == "/api/hw/status":
                 from quantum_hardware import job_status
                 self._send(200, job_status(str(body.get("job_id", ""))))

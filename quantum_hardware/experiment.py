@@ -87,19 +87,24 @@ def get_problem(mode: str, n: int, seed: int, layers: int) -> Problem:
     return get_problem_for_map(mode, {"kind": "random", "cities": n, "seed": seed}, layers)
 
 
-def get_problem_for_map(mode: str, map_spec: dict, layers: int) -> Problem:
-    """Build (or reuse) the experiment for any map, random or real."""
+def get_problem_for_map(mode: str, map_spec: dict, layers: int,
+                        retry_fallback: bool = False) -> Problem:
+    """Build (or reuse) the experiment for any map, random or real.
+
+    The result is cached so that "Simulate" and "Submit to IBM" use exactly the
+    same distances and the same circuit. If road distances could not be fetched
+    (the map fell back to straight lines), `retry_fallback=True` tries again.
+    """
     if mode not in LIMITS:
         raise ValueError(f"unknown problem '{mode}'")
     key = (mode, spec_key(map_spec), int(layers))
-    if key in _PROBLEMS:
-        return _PROBLEMS[key]
-    inst = build_instance(map_spec)
-    problem = _make_problem(mode, inst, int(layers))
-    if not inst.notes:                    # don't keep fallbacks; retry online next time
-        if len(_PROBLEMS) > 16:
-            _PROBLEMS.clear()
-        _PROBLEMS[key] = problem
+    cached = _PROBLEMS.get(key)
+    if cached is not None and not (retry_fallback and cached.map.notes):
+        return cached
+    problem = _make_problem(mode, build_instance(map_spec), int(layers))
+    if len(_PROBLEMS) > 16:
+        _PROBLEMS.clear()
+    _PROBLEMS[key] = problem
     return problem
 
 

@@ -194,6 +194,22 @@ Gate twirling and dynamical decoupling (IBM's built-in error suppression) are sw
 > **Rehearse offline:** type `fake_kingston` as the backend. The run uses a local copy of the
 > chip's noise and is clearly labelled *"Offline rehearsal, not real hardware"*.
 
+### Real map → quantum computer
+
+With **Real map** and **By road** selected, the IBM panel solves the same street distances as
+the classical solvers:
+
+```
+OpenStreetMap road distances (OSRM)  →  distance table (metres)
+  →  QUBO weights (savings between stops)  →  RZ / RZZ gate angles  →  IBM chip
+  →  measured van split  →  each van routed on the same road distances
+```
+
+The panel shows which distances were used ("Distances: road distance (OpenStreetMap / OSRM)").
+If road data could not be fetched, it shows a ⚠ warning, and the run uses straight-line
+distances instead. "Simulate" and "Submit to IBM" always use the identical circuit.
+`tests/test_realmap.py::test_quantum_hardware_uses_street_distances` checks this path.
+
 ### Your API key stays yours
 
 - The project never stores a key. The key you paste goes only to the dashboard running on your
