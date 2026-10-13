@@ -25,7 +25,7 @@ def _counts_from_pub(pub_result) -> dict[int, int]:
     return {int(k, 2): v for k, v in reg.get_counts().items()}
 
 
-def _noisy_counts(problem: Problem, shots: int, fake: str = DEFAULT_FAKE):
+def _noisy_counts(problem: Problem, shots: int, fake: str = DEFAULT_FAKE, seed: int = 3):
     """Simulate the circuit with the noise of a real IBM chip (no account needed)."""
     _require_qiskit()
     from qiskit_aer import AerSimulator
@@ -35,7 +35,7 @@ def _noisy_counts(problem: Problem, shots: int, fake: str = DEFAULT_FAKE):
     isa, stats = compile_for(qc, backend)
     sim = AerSimulator.from_backend(backend)
     t0 = time.perf_counter()
-    raw = sim.run(isa, shots=shots, seed_simulator=3).result().get_counts()
+    raw = sim.run(isa, shots=shots, seed_simulator=seed).result().get_counts()
     stats["seconds"] = time.perf_counter() - t0
     return {int(k.replace(" ", ""), 2): v for k, v in raw.items()}, stats
 
@@ -137,8 +137,8 @@ def _job_status(job_id: str) -> dict:
 _QISKIT_THREAD = ThreadPoolExecutor(max_workers=1, thread_name_prefix="qiskit")
 
 
-def noisy_counts(problem: Problem, shots: int, fake: str = DEFAULT_FAKE):
-    return _QISKIT_THREAD.submit(_noisy_counts, problem, shots, fake).result()
+def noisy_counts(problem: Problem, shots: int, fake: str = DEFAULT_FAKE, seed: int = 3):
+    return _QISKIT_THREAD.submit(_noisy_counts, problem, shots, fake, seed).result()
 
 
 def submit(problem: Problem, shots: int, token: str | None = None, instance: str | None = None,

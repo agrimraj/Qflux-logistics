@@ -1,5 +1,0 @@
-# Extra packages for quantum_hardware/ (noisy simulation + real IBM hardware).
--r requirements.txt
-qiskit>=2.0
-qiskit-ibm-runtime>=0.40
-qiskit-aer>=0.15

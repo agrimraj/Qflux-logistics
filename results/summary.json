@@ -1,0 +1,387 @@
+{
+  "generated_utc": "2026-10-13T04:28:01+00:00",
+  "versions": {
+    "python": "3.13.16",
+    "numpy": "2.5.3",
+    "qiskit": "2.5.2",
+    "qiskit-aer": "0.17.2",
+    "qiskit-ibm-runtime": "0.50.0",
+    "matplotlib": "3.11.2"
+  },
+  "main": {
+    "problem": {
+      "places": [
+        "Depot: Sealdah",
+        "Howrah Bridge",
+        "Esplanade",
+        "Park Street",
+        "Victoria Memorial",
+        "College Street",
+        "Gariahat",
+        "Kalighat",
+        "Science City",
+        "Salt Lake Sector V"
+      ],
+      "qubits": 8,
+      "distance_source": "straight line (great-circle)",
+      "layers": 1,
+      "params": [
+        4.356294194480306,
+        -0.2328527203726365
+      ],
+      "tuning_evaluations": 183,
+      "shots": 4000,
+      "noisy_seeds": [
+        11,
+        12,
+        13
+      ]
+    },
+    "classical_exact": {
+      "name": "Try every fair split + exact routes",
+      "length": 36153.83004544283,
+      "seconds": 0.0069593160000067655,
+      "splits_checked": 70,
+      "routes": [
+        [
+          0,
+          5,
+          1,
+          2,
+          4,
+          3,
+          0
+        ],
+        [
+          0,
+          7,
+          6,
+          8,
+          9,
+          0
+        ]
+      ]
+    },
+    "classical_heuristic": {
+      "length": 36153.83004544283,
+      "routes": [
+        [
+          0,
+          5,
+          1,
+          2,
+          4,
+          3,
+          0
+        ],
+        [
+          0,
+          7,
+          6,
+          8,
+          9,
+          0
+        ]
+      ],
+      "seconds": 0.0008153980000997763,
+      "gap_percent": 0.0
+    },
+    "random": {
+      "p_valid": 0.2734375,
+      "p_best": 0.00390625,
+      "quality": 0.8537383363692764
+    },
+    "ideal_exact": {
+      "p_valid": 0.6270305557022182,
+      "p_best": 0.010005437195746304
+    },
+    "ideal_sampled": {
+      "shots": 4000,
+      "p_valid": 0.60975,
+      "p_best": 0.0105,
+      "quality": 0.9475033403044028,
+      "best_length": 36153.83004544283,
+      "gap_percent": 0.0,
+      "p_valid_se": 0.007712894033694486,
+      "p_best_se": 0.001611656756260464
+    },
+    "noisy": {
+      "backend": "fake_kingston",
+      "runs": [
+        {
+          "shots": 4000,
+          "p_valid": 0.56125,
+          "p_best": 0.00925,
+          "quality": 0.9394026751890514,
+          "best_length": 36153.83004544283,
+          "gap_percent": 0.0,
+          "p_valid_se": 0.007846152520503281,
+          "p_best_se": 0.0015136410984774428
+        },
+        {
+          "shots": 4000,
+          "p_valid": 0.55975,
+          "p_best": 0.01075,
+          "quality": 0.9387003381568431,
+          "best_length": 36153.83004544283,
+          "gap_percent": 0.0,
+          "p_valid_se": 0.007849043532494899,
+          "p_best_se": 0.0016305242638489008
+        },
+        {
+          "shots": 4000,
+          "p_valid": 0.56425,
+          "p_best": 0.00675,
+          "quality": 0.9389385690929237,
+          "best_length": 36153.83004544283,
+          "gap_percent": 0.0,
+          "p_valid_se": 0.007840152063257447,
+          "p_best_se": 0.0012946464285665024
+        }
+      ],
+      "two_qubit_gates": 92,
+      "depth": 201,
+      "p_valid": 0.56175,
+      "p_valid_sd": 0.0022912878474779463,
+      "p_best": 0.008916666666666666,
+      "p_best_sd": 0.0020207259421636896,
+      "best_length": 36153.83004544283
+    },
+    "hardware": null,
+    "best_plan_routes": [
+      [
+        0,
+        5,
+        1,
+        2,
+        4,
+        3,
+        0
+      ],
+      [
+        0,
+        7,
+        6,
+        8,
+        9,
+        0
+      ]
+    ],
+    "points": [
+      {
+        "id": 0,
+        "name": "Depot: Sealdah",
+        "lat": 22.5678,
+        "lon": 88.371,
+        "x": 316.4277839029172,
+        "y": 305.9998175634912
+      },
+      {
+        "id": 1,
+        "name": "Howrah Bridge",
+        "lat": 22.5851,
+        "lon": 88.3468,
+        "x": 49.61411245876732,
+        "y": 99.4642387233352
+      },
+      {
+        "id": 2,
+        "name": "Esplanade",
+        "lat": 22.5646,
+        "lon": 88.3511,
+        "x": 97.02315325257237,
+        "y": 344.2029304125281
+      },
+      {
+        "id": 3,
+        "name": "Park Street",
+        "lat": 22.5525,
+        "lon": 88.3525,
+        "x": 112.4586549064601,
+        "y": 488.65845087296736
+      },
+      {
+        "id": 4,
+        "name": "Victoria Memorial",
+        "lat": 22.5448,
+        "lon": 88.3426,
+        "x": 3.3076074974434317,
+        "y": 580.5846911659703
+      },
+      {
+        "id": 5,
+        "name": "College Street",
+        "lat": 22.576,
+        "lon": 88.3639,
+        "x": 238.14773980167598,
+        "y": 208.1043408877971
+      },
+      {
+        "id": 6,
+        "name": "Gariahat",
+        "lat": 22.518,
+        "lon": 88.3665,
+        "x": 266.81367144448916,
+        "y": 900.5357612766647
+      },
+      {
+        "id": 7,
+        "name": "Kalighat",
+        "lat": 22.5203,
+        "lon": 88.3423,
+        "x": 0.0,
+        "y": 873.0772739164381
+      },
+      {
+        "id": 8,
+        "name": "Science City",
+        "lat": 22.5401,
+        "lon": 88.396,
+        "x": 592.0617420065769,
+        "y": 636.6955131629959
+      },
+      {
+        "id": 9,
+        "name": "Salt Lake Sector V",
+        "lat": 22.576,
+        "lon": 88.433,
+        "x": 1000.0,
+        "y": 208.1043408877971
+      }
+    ],
+    "seconds": 24.836096959000088
+  },
+  "route": [
+    {
+      "cities": 4,
+      "qubits": 9,
+      "layers": 1,
+      "maps": 10,
+      "p_optimal": 0.03346248355880078,
+      "p_optimal_sd": 0.0010933818373299099,
+      "p_valid": 0.09724143815834209,
+      "p_valid_sd": 0.002837675537357814,
+      "p_optimal_random": 0.00390625,
+      "qaoa_seconds": 0.02488926830001219,
+      "held_karp_seconds": 8.843000000524625e-06
+    },
+    {
+      "cities": 4,
+      "qubits": 9,
+      "layers": 2,
+      "maps": 10,
+      "p_optimal": 0.03897114776679814,
+      "p_optimal_sd": 0.007059014771197127,
+      "p_valid": 0.11206968803080715,
+      "p_valid_sd": 0.01875375302612834,
+      "p_optimal_random": 0.00390625,
+      "qaoa_seconds": 0.06934139820000382,
+      "held_karp_seconds": 8.621500012395699e-06
+    },
+    {
+      "cities": 5,
+      "qubits": 16,
+      "layers": 1,
+      "maps": 3,
+      "p_optimal": 0.0018898216622541372,
+      "p_optimal_sd": 4.090274809171968e-05,
+      "p_valid": 0.021596717363218054,
+      "p_valid_sd": 0.0008747654786375105,
+      "p_optimal_random": 3.0517578125e-05,
+      "qaoa_seconds": 1.9789603986666104,
+      "held_karp_seconds": 4.193399998560684e-05
+    }
+  ],
+  "scaling": [
+    {
+      "n": 6,
+      "heuristic_seconds": 9.619200000088313e-05,
+      "held_karp_seconds": 0.00010340799997266004,
+      "brute_seconds": 5.192799994802044e-05,
+      "gap_percent": 0.0,
+      "qubits_full_route": 25,
+      "qubits_two_vans": 4
+    },
+    {
+      "n": 7,
+      "heuristic_seconds": 9.805199999846081e-05,
+      "held_karp_seconds": 0.0002806319999990592,
+      "brute_seconds": 0.0002647189999152033,
+      "gap_percent": 0.0,
+      "qubits_full_route": 36,
+      "qubits_two_vans": 5
+    },
+    {
+      "n": 8,
+      "heuristic_seconds": 0.00015095399999154324,
+      "held_karp_seconds": 0.0006516720000036003,
+      "brute_seconds": 0.0019314069999154526,
+      "gap_percent": 0.0,
+      "qubits_full_route": 49,
+      "qubits_two_vans": 6
+    },
+    {
+      "n": 9,
+      "heuristic_seconds": 0.00021186499998293584,
+      "held_karp_seconds": 0.0018171509999547197,
+      "brute_seconds": 0.011790410000003249,
+      "gap_percent": 0.07887527469168099,
+      "qubits_full_route": 64,
+      "qubits_two_vans": 7
+    },
+    {
+      "n": 10,
+      "heuristic_seconds": 0.00031815699992421287,
+      "held_karp_seconds": 0.0044595570000183216,
+      "brute_seconds": 0.1415485830000307,
+      "gap_percent": 0.07538897454069104,
+      "qubits_full_route": 81,
+      "qubits_two_vans": 8
+    },
+    {
+      "n": 11,
+      "heuristic_seconds": 0.0003463649999275731,
+      "held_karp_seconds": 0.0074503869999489325,
+      "brute_seconds": 1.5707807179999236,
+      "gap_percent": 0.0,
+      "qubits_full_route": 100,
+      "qubits_two_vans": 9
+    },
+    {
+      "n": 12,
+      "heuristic_seconds": 0.0004704259999925853,
+      "held_karp_seconds": 0.01926081699991755,
+      "brute_seconds": null,
+      "gap_percent": 2.220446049250313e-14,
+      "qubits_full_route": 121,
+      "qubits_two_vans": 10
+    },
+    {
+      "n": 13,
+      "heuristic_seconds": 0.0006660540000211768,
+      "held_karp_seconds": 0.05143300499992165,
+      "brute_seconds": null,
+      "gap_percent": 0.0,
+      "qubits_full_route": 144,
+      "qubits_two_vans": 11
+    },
+    {
+      "n": 14,
+      "heuristic_seconds": 0.0011678399999937028,
+      "held_karp_seconds": 0.17232622099993478,
+      "brute_seconds": null,
+      "gap_percent": 0.0,
+      "qubits_full_route": 169,
+      "qubits_two_vans": 12
+    },
+    {
+      "n": 60,
+      "heuristic_seconds": 0.19810572299991236,
+      "held_karp_seconds": null,
+      "brute_seconds": null,
+      "gap_percent": null,
+      "qubits_full_route": 3481,
+      "qubits_two_vans": 58
+    }
+  ]
+}
