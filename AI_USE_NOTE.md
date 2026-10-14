@@ -5,7 +5,7 @@
 ## Tools used
 
 - **Claude (Anthropic), in the Claude Cowork desktop app.** Planning, most of the Python code,
-  debugging, the dashboard, the README and the first draft of the write-up.
+  debugging, the dashboard, the README .
 - **IBM Quantum Platform / Qiskit Runtime:** running the circuit on real hardware.
 - No other AI tools.
 
