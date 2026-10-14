@@ -24,7 +24,7 @@ def _save(path, record: dict) -> None:
 
 
 def run(backend_name: str | None = None, shots: int = C.SHOTS, instance: str | None = None,
-        job_id: str | None = None, log=print) -> dict:
+        job_id: str | None = None, token: str | None = None, log=print) -> dict:
     _require_qiskit()
     from qiskit_ibm_runtime import SamplerV2
 
@@ -36,7 +36,7 @@ def run(backend_name: str | None = None, shots: int = C.SHOTS, instance: str | N
         backend = fake_backend(backend_name)
         log(f"Offline rehearsal on {backend.name} (a noisy copy, NOT real hardware)")
     else:
-        service = _service(None, instance)          # key comes from QISKIT_IBM_TOKEN or a saved account
+        service = _service(token, instance)         # key: typed in, QISKIT_IBM_TOKEN, or a saved account
         if job_id:
             job = service.job(job_id)
             backend = job.backend()

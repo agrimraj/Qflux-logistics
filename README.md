@@ -1,6 +1,6 @@
 # Delivery Routing: Classical vs QAOA
 
-**Team:** TEAM NAME — Member 1, Member 2 *(edit this line and `writeup/team.json`)*
+**Team:** Qflux-logistics — Agrim Raj, Srijat Mukhopadhyay
 **Event:** Qiskit Fall Fest Hackathon 2026 (IISER Bhopal) · **Problem 06:** A routing problem: deliveries on a small map
 
 We encode delivery routing as a QUBO, solve it with QAOA on an ideal simulator, on a
@@ -41,7 +41,7 @@ source .venv/bin/activate              # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 
 python -m unittest discover -s tests -t . -v     # ~2 s, 27 tests
-python reproduce.py                               # ~40 s on a laptop
+python reproduce.py --show                        # ~40 s; opens the figures when done
 python writeup/build_writeup.py                   # ~2 s, rebuilds WRITEUP.pdf
 ```
 
@@ -80,14 +80,16 @@ Main result: two vans, 10 Kolkata places, 8 qubits, p = 1
 ## Optional: run on real IBM quantum hardware (bonus)
 
 Needs a free IBM Quantum account ([quantum.cloud.ibm.com](https://quantum.cloud.ibm.com)).
-**Never commit your API key.** It is read from an environment variable:
+**Never commit your API key.** The script asks for it (typing is hidden) and never saves it:
 
 ```bash
-export QISKIT_IBM_TOKEN="your-key"            # Windows (cmd): set QISKIT_IBM_TOKEN=your-key
-python run_hardware.py                        # least busy device; prints the job ID
-python reproduce.py                           # adds the hardware row to the table and figure
+python run_hardware.py                        # paste your key when asked; prints the job ID
+python reproduce.py --show                    # adds the hardware row to the table and figure
 python writeup/build_writeup.py               # puts backend, date and job ID in WRITEUP.pdf
 ```
+
+Instead of pasting the key each time, you can set it once per terminal with
+`export QISKIT_IBM_TOKEN="your-key"` (Windows cmd: `set QISKIT_IBM_TOKEN=your-key`).
 
 - `run_hardware.py` sends only the final tuned circuit (8 qubits, ~90 two-qubit gates,
   4,000 shots) with dynamical decoupling and gate twirling switched on. That takes a few

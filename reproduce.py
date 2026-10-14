@@ -3,6 +3,7 @@
 Runs every experiment with fixed seeds, writes results/summary.json and the
 figures in figures/. No IBM account or internet connection is needed.
 
+    python reproduce.py --show             # ...and open the figures when done
     python reproduce.py --figures-only     # redraw figures from results/summary.json
 
 If results/hardware_run.json exists (made by run_hardware.py), the real IBM
@@ -34,10 +35,25 @@ def versions() -> dict:
     return out
 
 
+def show(paths) -> None:
+    """Open the figure files in the computer's default image viewer."""
+    import os
+    import subprocess
+    for path in paths:
+        if sys.platform == "darwin":
+            subprocess.run(["open", str(path)], check=False)            # macOS: Preview
+        elif os.name == "nt":
+            os.startfile(str(path))                                      # Windows
+        else:
+            subprocess.run(["xdg-open", str(path)], check=False)        # Linux
+
+
 def main() -> None:
     if "--figures-only" in sys.argv:          # redraw figures from an existing summary.json
         figs = make_all(json.loads(C.SUMMARY_FILE.read_text()))
         print("Redrew " + ", ".join(str(f.relative_to(C.ROOT)) for f in figs))
+        if "--show" in sys.argv:
+            show(figs)
         return
     t0 = time.perf_counter()
     print("1/3  Two vans on the Kolkata map (ideal vs noisy simulator vs IBM hardware)...")
@@ -78,6 +94,10 @@ def main() -> None:
     print(f"\nWrote {C.SUMMARY_FILE.relative_to(C.ROOT)} and " +
           ", ".join(str(f.relative_to(C.ROOT)) for f in figs))
     print(f"Total time: {time.perf_counter() - t0:.0f} s")
+    if "--show" in sys.argv:
+        show(figs)
+    else:
+        print("Tip: add --show to open the figures, or open figures/main_result.png")
 
 
 if __name__ == "__main__":
