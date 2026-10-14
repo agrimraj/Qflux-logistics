@@ -7,7 +7,6 @@
 - **Claude (Anthropic), in the Claude Cowork desktop app.** Planning, most of the Python code,
   debugging, the dashboard, the README .
 - **IBM Quantum Platform / Qiskit Runtime:** running the circuit on real hardware.
-- No other AI tools.
 
 We reviewed the code, ran every experiment ourselves, and checked results against exact
 classical references (`tests/`, 27 checks). We can explain every circuit, formula and plot.
