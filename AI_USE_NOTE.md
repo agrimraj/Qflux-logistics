@@ -8,7 +8,7 @@
 - **IBM Quantum Platform / Qiskit Runtime:** running the circuit on real hardware.
 
 We reviewed the code, ran every experiment ourselves, and checked results against exact
-classical references (`tests/`, 27 checks). We can explain every circuit, formula and plot.
+classical references (`tests/`, 27 checks). 
 
 ## One thing the AI got wrong, and how we caught it
 
