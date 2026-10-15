@@ -1,6 +1,5 @@
 # AI-use note
 
-*(Team: please read and adjust this so it describes your own experience.)*
 
 ## Tools used
 
