@@ -27,7 +27,7 @@ vanishingly rare, and circuit depth and noise grow quickly.
 | AI-use note | [`AI_USE_NOTE.md`](AI_USE_NOTE.md)  |
 | Tests | [`tests/`](tests): 27 checks against exact or classical references |
 | Pinned packages | [`requirements.txt`](requirements.txt) |
-| Raw numbers | [`results/summary.json`](results/summary.json) (and `results/hardware_run.json` after a hardware run) |
+| Raw numbers | [`results/summary.json`](results/summary.json) |
 
 ---
 
